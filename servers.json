@@ -1,0 +1,13 @@
+{
+    "env" : {
+	"delta loyd": {
+	    "server" : "GRCWEB-SPE",
+	    "subfolder" : "rsk50s-dll",
+	    "repo" : "https://src.frontsrv.com/svn/repository/branches4/rsk/50-deltaloyd",
+	    "version" : "50"
+	}
+    },
+    "configRefs" : {
+	"50" : "C:/SVN/50/website/efront.config"
+	}
+}
