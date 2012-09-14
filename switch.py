@@ -23,10 +23,11 @@ def switch(srcdir):
 
 def find_src_dir(path):
     true_dirs = filter(os.path.exists, [os.path.join(root, path) for root in ROOTS] + [os.path.abspath(path)])
+    true_dirs = list(set(true_dirs))
     if len(true_dirs) == 0:
         raise Exception("{} not found".format(path))
     if len(true_dirs) > 1:
-        print "\n".join(enumerate(true_dirs))
+        print "\n".join("{} - {}".format(i, p) for i, p in enumerate(true_dirs))
         selection = int(raw_input("please select source: "))
     else:
         selection = 0
