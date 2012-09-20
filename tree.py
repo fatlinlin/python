@@ -1,8 +1,17 @@
-import pysvn
 import os
+import argparse
+import io
+import logging
 
 DEFAULT_SVN_ROOT = r"https://src.frontsrv.com/svn/repository/branches4/rsk"
 DEFAULT_DISK_ROOT = r"c:\svn"
+
+
+def task(*names):
+    class TaskAction(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            map(tasks.add, names)
+    return TaskAction
 
 class Branch(object):
 
@@ -56,7 +65,6 @@ class Tree:
 
     def __init__(self):
         self.branches = {"trunk4.1" : Trunk()}
-        self.svn = pysvn.Client()
 
     def load_main_branches(self, names, head):
         try:
@@ -77,22 +85,43 @@ class Tree:
         main_branches = self.load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self.load_client_branches(clients_grps, main_branches)
         
-    def merge(self, src_name, commit):
+    def merge(self, src_name, commit, dry_run, tasks, message_log_path):
         branch = self.branches[src_name]
+        dest_branch = branch.next()
+        client = SvnClient(dry_run)
         try:
             while True:
-                next_branch = branch.next()
-                self.Client.merge(
-                    branch.disk_path,
+                client.update(dest_branch.disk_path)
+                client.merge(
+                    branch.svn_path,
                     commit,
-                    next_branch.disk_path,
-                    commit)
-                print branch, branch.svn_path
-                raise Exception()
-                branch = branch.next()
+                    dest_branch.disk_path)
+                if "compile" in tasks:
+                    io.cmd(
+                        "msbuild_RSK.bat",
+                        cwd=dest_branch.disk_path,
+                        logger=logging.getLogger("msbuild_RSK.bat").debug)
+                dest_branch = dest_branch.next()
         except StopIteration:
-            print "trunk reached"
+            logging.info("trunk reached")
             
+class SvnClient:
+
+    def __init__(self, dry_run):
+        self.dry_run = dry_run
+
+    def cmd(self, cmd):
+        io.cmd(cmd,
+               dry_run=self.dry_run,
+               logger=logging.getLogger("svn").debug)
+
+    def merge(self, source, revision, dest):
+        logging.info("merging {}@{} to {}".format(source, revision, dest))
+        self.cmd("svn merge -r {}:{} {} {}".format(revision - 1, revision, source, dest))
+
+    def update(self, repo):
+        logging.info("updating {}".format(repo))
+        self.cmd("svn update {}".format(repo))
 
 if __name__ == "__main__":
     tree = Tree()

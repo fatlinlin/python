@@ -1,6 +1,8 @@
 import argparse
 import os
-import subprocess
+import logging
+import io
+
 DEV_DIR = r"c:\dev4.1"
 ROOTS = [
     r"c:\svn",
@@ -8,10 +10,10 @@ ROOTS = [
     ]
 
 def remove_junction(junction_path):
-    subprocess.check_call("rmdir {}".format(junction_path), shell=True)
+    io.cmd("rmdir {}".format(junction_path))
 
 def create_junction(dev_dir, srcdir):
-    subprocess.check_call("mklink /J {} {}".format(dev_dir, os.path.abspath(srcdir)), shell=True)
+    io.cmd("mklink /J {} {}".format(dev_dir, os.path.abspath(srcdir)))
 
 def switch(srcdir):
     if os.path.exists(DEV_DIR):
@@ -19,7 +21,9 @@ def switch(srcdir):
     srcdir = find_src_dir(srcdir)
     create_junction(DEV_DIR, srcdir)
     if os.path.exists(os.path.join(DEV_DIR, "Switch.cmd")):
-        subprocess.check_call("Switch.cmd", shell=True, cwd=DEV_DIR)
+        logging.info("Running Switch.cmd")
+        io.cmd("Switch.cmd", cwd=DEV_DIR, logger=logging.getLogger("Switch.cmd").debug)
+    logging.info("success")
 
 def find_src_dir(path):
     true_dirs = filter(os.path.exists, [os.path.join(root, path) for root in ROOTS] + [os.path.abspath(path)])
@@ -37,4 +41,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Switch environnement")
     parser.add_argument("srcdir")
     args = parser.parse_args()
+    io.setup_log("switch")
     switch(args.srcdir)
+
