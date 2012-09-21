@@ -1,17 +1,8 @@
 import os
-import argparse
-import io
 import logging
 
 DEFAULT_SVN_ROOT = r"https://src.frontsrv.com/svn/repository/branches4/rsk"
 DEFAULT_DISK_ROOT = r"c:\svn"
-
-
-def task(*names):
-    class TaskAction(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            map(tasks.add, names)
-    return TaskAction
 
 class Branch(object):
 
@@ -63,9 +54,12 @@ class Trunk(Branch):
         
 class Tree:
 
-    def __init__(self):
+    def __init__(self, repo_graph, client, log_base_path):
         self.branches = {"trunk4.1" : Trunk()}
-
+        self.load_tree(repo_graph)
+        self.client = client
+        self.log_base_path = log_base_path
+        
     def load_main_branches(self, names, head):
         try:
             name = names.pop()
@@ -85,43 +79,26 @@ class Tree:
         main_branches = self.load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self.load_client_branches(clients_grps, main_branches)
         
-    def merge(self, src_name, commit, dry_run, tasks, message_log_path):
+    def write_commit_messages(self, messages):
+        path = "{}.commit_messages.log".format(self.log_base_path)
+        logging.info("writing commit messages to {}".format(path))
+        with open(path , "w") as fh:
+            for msg in messages:
+                fh.write('\n\n')
+                fh.write(msg)
+                
+    def merge(self, src_name, commit, tasks):
         branch = self.branches[src_name]
         dest_branch = branch.next()
-        client = SvnClient(dry_run)
+        messages = []
         try:
             while True:
-                client.update(dest_branch.disk_path)
-                client.merge(
-                    branch.svn_path,
-                    commit,
-                    dest_branch.disk_path)
-                if "compile" in tasks:
-                    io.cmd(
-                        "msbuild_RSK.bat",
-                        cwd=dest_branch.disk_path,
-                        logger=logging.getLogger("msbuild_RSK.bat").debug)
+                self.client.run(branch, dest_branch, commit)
                 dest_branch = dest_branch.next()
         except StopIteration:
             logging.info("trunk reached")
-            
-class SvnClient:
-
-    def __init__(self, dry_run):
-        self.dry_run = dry_run
-
-    def cmd(self, cmd):
-        io.cmd(cmd,
-               dry_run=self.dry_run,
-               logger=logging.getLogger("svn").debug)
-
-    def merge(self, source, revision, dest):
-        logging.info("merging {}@{} to {}".format(source, revision, dest))
-        self.cmd("svn merge -r {}:{} {} {}".format(revision - 1, revision, source, dest))
-
-    def update(self, repo):
-        logging.info("updating {}".format(repo))
-        self.cmd("svn update {}".format(repo))
+        finally:
+            self.write_commit_messages(messages)
 
 if __name__ == "__main__":
     tree = Tree()
