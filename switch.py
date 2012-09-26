@@ -1,7 +1,9 @@
 import argparse
+import re
 import os
 import logging
 import io
+import svn
 
 DEV_DIR = r"c:\dev4.1"
 ROOTS = [
@@ -9,16 +11,28 @@ ROOTS = [
     r"c:\git",
     ]
 
+def get_current_target():
+    regex = re.compile("<JUNCTION> +dev4\.1 \[(.*)\]")
+    matches = []
+    def get_match(line):
+        m = regex.search(line)
+        if m is None:
+            return
+        matches.append(m.group(1))
+    io.cmd("dir", cwd="c:\\", logger=get_match)
+    assert len(matches) == 1
+    return matches[0]
+
 def remove_junction(junction_path):
-    io.cmd("rmdir {}".format(junction_path))
+    io.cmd("rmdir {}".format(junction_path), logger=logging.debug)
 
 def create_junction(dev_dir, srcdir):
-    io.cmd("mklink /J {} {}".format(dev_dir, os.path.abspath(srcdir)))
+    logging.info("creating a junction to the repository between {} and {}".format(dev_dir, srcdir))
+    io.cmd("mklink /J {} {}".format(dev_dir, os.path.abspath(srcdir)), logger=logging.debug)
 
 def switch(srcdir):
     if os.path.exists(DEV_DIR):
         remove_junction(DEV_DIR)
-    srcdir = find_src_dir(srcdir)
     create_junction(DEV_DIR, srcdir)
     if os.path.exists(os.path.join(DEV_DIR, "Switch.cmd")):
         logging.info("Running Switch.cmd")
@@ -37,10 +51,25 @@ def find_src_dir(path):
         selection = 0
     return true_dirs[selection]
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Switch environnement")
-    parser.add_argument("srcdir")
-    args = parser.parse_args()
+def setup():
     io.setup_log("switch")
-    switch(args.srcdir)
-
+    client = svn.SvnClient()
+    parser = argparse.ArgumentParser(description="Switch environnement")
+    parser.add_argument("srcdir", help="branch to switch to", default=None, nargs="?")
+    parser.add_argument("-b", "--build", help="launch msbuild_RSK.bat", action="store_true")
+    parser.add_argument("-u", "--update", help="update the repository", action="store_true")
+    args = parser.parse_args()
+    
+def run(args):
+    if args is None:
+        logging.info("currently on {}".format(get_current_target()))
+        return
+    path = find_src_dir(args.srcdir)
+    if args.update:
+        client.update(path)
+    switch(path)
+    if args.build:
+        client.compile(DEV_DIR)
+    
+if __name__ == "__main__":
+    run(setup())

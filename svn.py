@@ -35,14 +35,19 @@ class SvnClient:
         logging.info("updating {}".format(repo))
         self.cmd("svn update {}".format(repo))
 
+    def compile(self, path):
+        logging.info("launching msbuild_RSK.bat")
+        io.cmd(
+            "msbuild_RSK.bat",
+            cwd=path,
+            logger=logging.getLogger("msbuild_RSK.bat").debug)
+
     def run(self, source, dest, rev):
         self.update(dest.disk_path)
-        self.messages.append(self.client.merge(
+        message = self.merge(
             source.svn_path,
             rev,
-            dest.disk_path))
+            dest.disk_path)
         if "compile" in self.tasks:
-            io.cmd(
-                "msbuild_RSK.bat",
-                cwd=dest_branch.disk_path,
-                logger=logging.getLogger("msbuild_RSK.bat").debug)
+            self.compile(dest.disk_path)
+        return message

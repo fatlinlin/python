@@ -87,13 +87,13 @@ class Tree:
                 fh.write('\n\n')
                 fh.write(msg)
                 
-    def merge(self, src_name, commit, tasks):
+    def merge(self, src_name, commit):
         branch = self.branches[src_name]
         dest_branch = branch.next()
         messages = []
         try:
             while True:
-                self.client.run(branch, dest_branch, commit)
+                messages.append(self.client.run(branch, dest_branch, commit))
                 dest_branch = dest_branch.next()
         except StopIteration:
             logging.info("trunk reached")
