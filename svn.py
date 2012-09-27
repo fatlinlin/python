@@ -41,6 +41,7 @@ class SvnClient:
         logging.info("launching msbuild_RSK.bat")
         io.cmd(
             "msbuild_RSK.bat",
+            skip_pause=True,
             cwd=path,
             logger=logging.getLogger("msbuild_RSK.bat").debug)
 

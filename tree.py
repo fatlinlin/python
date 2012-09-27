@@ -54,7 +54,7 @@ class Trunk(Branch):
         
 class Tree:
 
-    def __init__(self, repo_graph, client, log_base_path):
+    def __init__(self, repo_graph, client):
         self.branches = {"trunk4.1" : Trunk()}
         self.load_tree(repo_graph)
         self.client = client

@@ -19,10 +19,15 @@ def setup_log(app_name, loglevel=logging.INFO):
 def cmd(command, *args, **kwargs):
     log = kwargs.pop("logger", logging.info)
     dry_run = kwargs.pop("dry_run", False)
+    skip_pause = kwargs.pop("skip_pause", False)
+    if skip_pause:
+        kwargs["stdin"] = subprocess.PIPE
     log(command)
     if dry_run:
         return
     p = subprocess.Popen(command, *args, shell=True, stdout=subprocess.PIPE, **kwargs) 
+    if skip_pause:
+        p.stdin.write(" ")
     for line in p.stdout:
         log(line.strip())
     p.wait()

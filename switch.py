@@ -37,7 +37,6 @@ def switch(srcdir):
     if os.path.exists(os.path.join(DEV_DIR, "Switch.cmd")):
         logging.info("Running Switch.cmd")
         io.cmd("Switch.cmd", cwd=DEV_DIR, logger=logging.getLogger("Switch.cmd").debug)
-    logging.info("success")
 
 def find_src_dir(path):
     true_dirs = filter(os.path.exists, [os.path.join(root, path) for root in ROOTS] + [os.path.abspath(path)])
@@ -52,14 +51,16 @@ def find_src_dir(path):
     return true_dirs[selection]
 
 def setup():
-    io.setup_log("switch")
     client = svn.SvnClient()
     parser = argparse.ArgumentParser(description="Switch environnement")
     parser.add_argument("srcdir", help="branch to switch to", default=None, nargs="?")
     parser.add_argument("-b", "--build", help="launch msbuild_RSK.bat", action="store_true")
     parser.add_argument("-u", "--update", help="update the repository", action="store_true")
     parser.add_argument("-d", "--dry_run", help="do not perform svn operations", action="store_true")
-    return parser.parse_args()
+    parser.add_argument("-v", "--verbose", help="control the output level", action="store_true")
+    args = parser.parse_args()
+    io.setup_log("switch", logging.DEBUG if args.verbose else logging.INFO)
+    return args
     
 def run(args):
     if args.srcdir is None:
