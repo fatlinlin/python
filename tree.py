@@ -58,7 +58,6 @@ class Tree:
         self.branches = {"trunk4.1" : Trunk()}
         self.load_tree(repo_graph)
         self.client = client
-        self.log_base_path = log_base_path
         
     def load_main_branches(self, names, head):
         try:
@@ -79,13 +78,6 @@ class Tree:
         main_branches = self.load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self.load_client_branches(clients_grps, main_branches)
         
-    def write_commit_messages(self, messages):
-        path = "{}.commit_messages.log".format(self.log_base_path)
-        logging.info("writing commit messages to {}".format(path))
-        with open(path , "w") as fh:
-            for msg in messages:
-                fh.write('\n\n')
-                fh.write(msg)
                 
     def merge(self, src_name, commit):
         branch = self.branches[src_name]
@@ -98,7 +90,7 @@ class Tree:
         except StopIteration:
             logging.info("trunk reached")
         finally:
-            self.write_commit_messages(messages)
+            self.client.write_commit_messages()
 
 if __name__ == "__main__":
     tree = Tree()

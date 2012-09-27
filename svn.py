@@ -9,6 +9,8 @@ class SvnClient:
         self.tasks = []
         self.taskNames = set()
         self.user = None
+        self.log_base_path = None
+        self.messages = []
 
     def task(self, *names):
         class TaskAction(argparse.Action):
@@ -24,7 +26,7 @@ class SvnClient:
     def merge(self, source, revision, dest):
         logging.info("merging {}@{} to {}".format(source, revision, dest))
         self.cmd("svn merge -r {}:{} {} {}".format(revision - 1, revision, source, dest))
-        return self.get_commit_msg(source, revision)
+        self.messages.append(self.get_commit_msg(source, revision))
 
     def get_commit_msg(self, url, revision):
         lines = []
@@ -41,6 +43,14 @@ class SvnClient:
             "msbuild_RSK.bat",
             cwd=path,
             logger=logging.getLogger("msbuild_RSK.bat").debug)
+
+    def write_commit_messages(self):
+        path = "{}.commit_messages.log".format(self.log_base_path)
+        logging.info("writing commit messages to {}".format(path))
+        with open(path , "w") as fh:
+            for msg in self.messages:
+                fh.write('\n\n')
+                fh.write(msg)
 
     def run(self, source, dest, rev):
         self.update(dest.disk_path)

@@ -58,13 +58,16 @@ def setup():
     parser.add_argument("srcdir", help="branch to switch to", default=None, nargs="?")
     parser.add_argument("-b", "--build", help="launch msbuild_RSK.bat", action="store_true")
     parser.add_argument("-u", "--update", help="update the repository", action="store_true")
-    args = parser.parse_args()
+    parser.add_argument("-d", "--dry_run", help="do not perform svn operations", action="store_true")
+    return parser.parse_args()
     
 def run(args):
-    if args is None:
+    if args.srcdir is None:
         logging.info("currently on {}".format(get_current_target()))
         return
     path = find_src_dir(args.srcdir)
+    client = svn.SvnClient()
+    client.dry_run = args.dry_run
     if args.update:
         client.update(path)
     switch(path)

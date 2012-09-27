@@ -29,9 +29,10 @@ def run():
                         nargs=1)
     args = parser.parse_args()
     io.setup_log("merge", logging.DEBUG if args.verbose else logging.INFO)
-    repo_graph = [("40", []), ("50", []), ("60", [])]
+    repo_graph = [("40", []), ("50", []), ("60", ["65-mercator"])]
     client.dry_run = args.dry_run
-    myTree = tree.Tree(repo_graph, client, "./merge")
+    client.log_base_path = "./merge"
+    myTree = tree.Tree(repo_graph, client)
     myTree.merge(args.branch, args.commit)
 
 if __name__ == "__main__":
