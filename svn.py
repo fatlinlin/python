@@ -38,13 +38,10 @@ class SvnClient:
         logging.info("updating {}".format(repo))
         self.cmd("svn update {}".format(repo))
 
+        
     def compile(self, path):
-        logging.info("launching msbuild_RSK.bat")
-        io.cmd(
-            "msbuild_RSK.bat",
-            skip_pause=True,
-            cwd=path,
-            logger=logging.getLogger("msbuild_RSK.bat").debug)
+        io.run_script(path, "build_rt.bat")
+        io.run_script(path, "msbuild_RSK.bat")
 
     def write(self, suffix, lines):
         path = "{}.{}.log".format(self.log_base_path, suffix)

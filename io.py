@@ -33,3 +33,12 @@ def cmd(command, *args, **kwargs):
     p.wait()
     if p.returncode:
         raise subprocess.CalledProcessError(p.returncode, command)
+
+
+def run_script(root, tool):
+    logging.info("launching {}".format(tool))
+    cmd(
+        tool,
+        skip_pause=True,
+        cwd=root,
+        logger=logging.getLogger(tool).debug)
