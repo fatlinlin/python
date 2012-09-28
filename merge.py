@@ -4,6 +4,14 @@ import tree
 import svn
 import logging
 
+def setup_client(client, args):
+    client.dry_run = args.dry_run
+    client.log_base_path = "./merge"
+    client.user = "sberg"
+
+def get_repo_graph():
+    return [("40", []), ("50", ["50-acoss"]), ("60", ["65-mercator"])]
+
 def run():
     client = svn.SvnClient()
     parser = argparse.ArgumentParser(description="merge tool")
@@ -25,15 +33,15 @@ def run():
     parser.add_argument("-l",
                         "--getlog",
                         help="collect the last logs of a user",
-                        action=client.task("log"),
-                        nargs=1)
+                        action="store_true")
     args = parser.parse_args()
+    setup_client(client, args)
     io.setup_log("merge", logging.DEBUG if args.verbose else logging.INFO)
-    repo_graph = [("40", []), ("50", []), ("60", ["65-mercator"])]
-    client.dry_run = args.dry_run
-    client.log_base_path = "./merge"
-    myTree = tree.Tree(repo_graph, client)
-    myTree.merge(args.branch, args.commit)
+    myTree = tree.Tree(get_repo_graph(), client)
+    if args.getlog:
+        myTree.collect_logs(args.branch)
+    else:
+        myTree.merge(args.branch, args.commit)
 
 if __name__ == "__main__":
     run()

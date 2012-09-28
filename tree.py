@@ -4,6 +4,15 @@ import logging
 DEFAULT_SVN_ROOT = r"https://src.frontsrv.com/svn/repository/branches4/rsk"
 DEFAULT_DISK_ROOT = r"c:\svn"
 
+class BranchIterator:
+
+    def __init__(self, branch):
+        self.branch = branch
+
+    def next(self):
+        self.branch = self.branch.next()
+        return self.branch
+
 class Branch(object):
 
     def __init__(self, name):
@@ -18,6 +27,9 @@ class Branch(object):
     @property
     def disk_path(self):
         return os.path.join(self.disk_root, self.name)
+
+    def __iter__(self):
+        return BranchIterator(self)
 
     def next(self):
         raise NotImplementedError()
@@ -58,43 +70,36 @@ class Tree:
         self.branches = {"trunk4.1" : Trunk()}
         self.load_tree(repo_graph)
         self.client = client
-        
-    def load_main_branches(self, names, head):
+
+    def _load_main_branches(self, names, head):
         try:
             name = names.pop()
         except IndexError:
             return []
         branch = MainBranch(name, head)
         self.branches[name] = branch
-        return self.load_main_branches(names, branch) + [branch]
+        return self._load_main_branches(names, branch) + [branch]
 
-    def load_client_branches(self, client_grps, main_branches):
+    def _load_client_branches(self, client_grps, main_branches):
         for main, clients in zip(main_branches, client_grps):
             for client in clients:
                 self.branches[client] = ClientBranch(client, main)
-   
+
     def load_tree(self, branches):
         main_branches_names, clients_grps = zip(*branches)
-        main_branches = self.load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
-        self.load_client_branches(clients_grps, main_branches)
-        
-                
+        main_branches = self._load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
+        self._load_client_branches(clients_grps, main_branches)
+
     def merge(self, src_name, commit):
         branch = self.branches[src_name]
-        dest_branch = branch.next()
-        messages = []
-        try:
-            while True:
-                messages.append(self.client.run(branch, dest_branch, commit))
-                dest_branch = dest_branch.next()
-        except StopIteration:
-            logging.info("trunk reached")
-        finally:
-            self.client.write_commit_messages()
+        for dest_branch in branch:
+            self.client.run(branch, dest_branch, commit)
+        self.client.write_commit_messages()
 
-if __name__ == "__main__":
-    tree = Tree()
-    tree.load_tree([("40", []), ("50", []), ("60", [])])
-    print "merging 40"
-    tree.merge("40", None)
-    
+    def collect_logs(self, src_name):
+        branch = self.branches[src_name]
+        messages = [self.client.get_last_commit_info(branch)]
+        for dest_branch in branch:
+            messages.append(self.client.get_last_commit_info(dest_branch))
+        return messages
+

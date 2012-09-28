@@ -1,6 +1,7 @@
 import argparse
 import io
 import logging
+import re
 
 class SvnClient:
 
@@ -45,20 +46,49 @@ class SvnClient:
             cwd=path,
             logger=logging.getLogger("msbuild_RSK.bat").debug)
 
-    def write_commit_messages(self):
-        path = "{}.commit_messages.log".format(self.log_base_path)
+    def write(self, suffix, lines):
+        path = "{}.{}.log".format(self.log_base_path, suffix)
         logging.info("writing commit messages to {}".format(path))
-        with open(path , "w") as fh:
-            for msg in self.messages:
-                fh.write('\n\n')
-                fh.write(msg)
+        with open(path , "a") as fh:
+            for msg in lines:
+                fh.write('\n')
+                fh.write(msg.strip())
+
+    def write_commit_messages(self):
+        self.write("commit_message", self.messages)
+
+    def get_last_commit_info(self, branch, log_depth=10):
+        lines = []
+        io.cmd("svn log {} -v -l {}".format(branch.svn_path, log_depth), logger=lines.append)
+        lines = list(self.parse_svn_log(lines))
+        self.write("ticket_message", lines)
+
+    def find_usr_commit(self, lines):
+        usr_regex = re.compile("(\w*?) \| (\w*?) \|.*")
+        for i, line in enumerate(lines):
+            m = usr_regex.match(line)
+            if m is None:
+                continue
+            if m.group(2) == self.user:
+                return i
+        raise RuntimeError("could not find user {} in logs".format(self.user))
+
+    def parse_svn_log(self, lines):
+        i = self.find_usr_commit(lines)
+        for line in lines[i:]:
+            if line.startswith("--"):
+                yield ""
+                yield "-" * 50
+                yield ""
+                return
+            yield line
+        return
 
     def run(self, source, dest, rev):
         self.update(dest.disk_path)
-        message = self.merge(
+        self.merge(
             source.svn_path,
             rev,
             dest.disk_path)
         if "compile" in self.tasks:
             self.compile(dest.disk_path)
-        return message
