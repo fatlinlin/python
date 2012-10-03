@@ -4,10 +4,13 @@ import logging
 DEFAULT_SVN_ROOT = r"https://src.frontsrv.com/svn/repository/branches4/rsk"
 DEFAULT_DISK_ROOT = r"c:\svn"
 
-class BranchIterator:
+class BranchIterator(object):
 
     def __init__(self, branch):
         self.branch = branch
+
+    def __iter__(self):
+        return self
 
     def next(self):
         self.branch = self.branch.next()
@@ -28,7 +31,7 @@ class Branch(object):
     def disk_path(self):
         return os.path.join(self.disk_root, self.name)
 
-    def __iter__(self):
+    def merge_targets(self):
         return BranchIterator(self)
 
     def next(self):
@@ -36,6 +39,9 @@ class Branch(object):
 
     def __repr__(self):
         return "{}(name={})".format(self.__class__.__name__, self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name and type(self) == type(other)
 
 class ClientBranch(Branch):
 
@@ -92,14 +98,14 @@ class Tree:
 
     def merge(self, src_name, commit):
         branch = self.branches[src_name]
-        for dest_branch in branch:
+        for dest_branch in branch.merge_targets():
             self.client.run(branch, dest_branch, commit)
         self.client.write_commit_messages()
 
     def collect_logs(self, src_name):
         branch = self.branches[src_name]
         messages = [self.client.get_last_commit_info(branch)]
-        for dest_branch in branch:
+        for dest_branch in branch.merge_targets():
             messages.append(self.client.get_last_commit_info(dest_branch))
         return messages
 
