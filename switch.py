@@ -63,18 +63,39 @@ def setup():
     io.setup_log("switch", logging.DEBUG if args.verbose else logging.INFO)
     return args
     
+class Target:
+
+    root_names = map(os.path.basename, ROOTS)
+    root_names.sort()
+    
+    def __init__(self, name):
+        self.name = name
+        self.srcs = set()
+
+    def add(self, root):
+        self.srcs.add(os.path.basename(root))
+
+    def _get_src(self, root):
+        return root if root in self.srcs else " " * len(root)
+
+    def __str__(self):
+        return " ".join([self._get_src(root) for root in self.root_names] + [self.name])
+
 def list_dirs(log):
     log("available dirs:")
-    dirs = []
+    dirs = {}
     for root in ROOTS:
         for dirname in os.listdir(root):
             if not os.path.exists(os.path.join(root, dirname, "msbuild_RSK.bat")):
                 continue
-            dirs.append(dirname)
-    dirs = list(set(dirs))
-    dirs.sort()
-    for dirname in dirs:
-        log("- {}".format(dirname))
+            if not dirname in dirs:
+                dirs[dirname] = Target(dirname)
+            dirs[dirname].add(root)
+
+    dirs_list = list(set(dirs))
+    dirs_list.sort()
+    for dirname in dirs_list:
+        log(str(dirs[dirname]))
     
 def run(args):
     if args.srcdir is None:
