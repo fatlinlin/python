@@ -15,6 +15,15 @@ class TestTree(unittest.TestCase):
         self.tree.client.run.assert_any_call(tree.MainBranch("1", None), tree.MainBranch("3", None), 18)
         self.tree.client.run.assert_any_call(tree.MainBranch("1", None), tree.Trunk(), 18)
 
+    def test_merge_2(self):
+        self.tree.merge("2", 18)
+        self.tree.client.run.assert_any_call(tree.MainBranch("2", None), tree.MainBranch("3", None), 18)
+        self.tree.client.run.assert_any_call(tree.MainBranch("2", None), tree.Trunk(), 18)
+
+    def test_logs(self):
+        self.tree.collect_logs("1")
+        self.tree.client.get_last_commit_info.assert_any_call(tree.MainBranch("2", None))
+        self.tree.client.get_last_commit_info.assert_any_call(tree.MainBranch("3", None))
 
 if __name__ == '__main__':
     unittest.main()

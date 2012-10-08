@@ -26,7 +26,7 @@ class SvnClient:
 
     def merge(self, source, revision, dest):
         logging.info("merging {}@{} to {}".format(source, revision, dest))
-        self.cmd("svn merge -r {}:{} {} {}".format(revision - 1, revision, source, dest))
+        self.cmd("svn merge -r {}:{} {} {} --accept p".format(revision - 1, revision, source, dest))
         self.messages.append(self.get_commit_msg(source, revision))
 
     def get_commit_msg(self, url, revision):

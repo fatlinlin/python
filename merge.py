@@ -1,4 +1,6 @@
 import argparse
+import os
+import json
 import io
 import tree
 import svn
@@ -6,11 +8,12 @@ import logging
 
 def setup_client(client, args):
     client.dry_run = args.dry_run
-    client.log_base_path = "./merge"
+    client.log_base_path = "c:/merge"
     client.user = "sberg"
 
 def get_repo_graph():
-    return [("40", []), ("50", ["50-acoss"]), ("60", ["65-mercator"])]
+    with open(os.path.join(os.path.dirname(__file__), "merge.json")) as conf:
+        return json.load(conf)
 
 def run():
     client = svn.SvnClient()

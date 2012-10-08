@@ -58,17 +58,34 @@ def setup():
     parser.add_argument("-u", "--update", help="update the repository", action="store_true")
     parser.add_argument("-d", "--dry_run", help="do not perform svn operations", action="store_true")
     parser.add_argument("-v", "--verbose", help="control the output level", action="store_true")
+    parser.add_argument("-l", "--dir_list", help="list available dirs", action="store_true")
     args = parser.parse_args()
     io.setup_log("switch", logging.DEBUG if args.verbose else logging.INFO)
     return args
     
+def list_dirs(log):
+    log("available dirs:")
+    dirs = []
+    for root in ROOTS:
+        for dirname in os.listdir(root):
+            if not os.path.exists(os.path.join(root, dirname, "msbuild_RSK.bat")):
+                continue
+            dirs.append(dirname)
+    dirs = list(set(dirs))
+    dirs.sort()
+    for dirname in dirs:
+        log("- {}".format(dirname))
+    
 def run(args):
     if args.srcdir is None:
         logging.info("currently on {}".format(get_current_target()))
+        if args.dir_list:
+            list_dirs(logging.info)
         return
     path = find_src_dir(args.srcdir)
     client = svn.SvnClient()
     client.dry_run = args.dry_run
+    client.log_base_path = "c:/merge"
     if args.update:
         client.update(path)
     switch(path)
