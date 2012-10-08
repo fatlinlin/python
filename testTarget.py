@@ -6,6 +6,7 @@ class TestTarget(unittest.TestCase):
 
     def setUp(self):
         self.target = switch.Target("myTarget")
+        self.target.root_names = ["git", "svn"]
 
     def test_add(self):
         self.target.add("name")
