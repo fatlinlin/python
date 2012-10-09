@@ -8,10 +8,6 @@ class TestTarget(unittest.TestCase):
         self.target = switch.Target("myTarget")
         self.target.root_names = ["git", "svn"]
 
-    def test_add(self):
-        self.target.add("name")
-        self.assertEqual(self.target.srcs, {"name"})
-
     def test_print_svn(self):
         self.target.add("svn")
         self.assertEqual(str(self.target), "    svn myTarget")
