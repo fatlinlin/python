@@ -19,7 +19,7 @@ def run():
     client = svn.SvnClient()
     parser = argparse.ArgumentParser(description="merge tool")
     parser.add_argument("branch", help="the branch to merge")
-    parser.add_argument("commit", help="the commit to merge", type=int)
+    parser.add_argument("commits", help="the commits to merge", type=int, nargs='+')
     parser.add_argument("-d",
                         "--dry_run",
                         help="do not actually run the command",
@@ -44,7 +44,7 @@ def run():
     if args.getlog:
         myTree.collect_logs(args.branch)
     else:
-        myTree.merge(args.branch, args.commit)
+        myTree.merge(args.branch, args.commits)
 
 if __name__ == "__main__":
     run()

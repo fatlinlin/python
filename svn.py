@@ -24,15 +24,19 @@ class SvnClient:
                dry_run=self.dry_run,
                logger=logging.getLogger("svn").debug)
 
-    def merge(self, source, revision, dest):
-        logging.info("merging {}@{} to {}".format(source, revision, dest))
-        self.cmd("svn merge -r {}:{} {} {} --accept p".format(revision - 1, revision, source, dest))
-        self.messages.append(self.get_commit_msg(source, revision))
+    def merge(self, source, revisions, dest):
+        logging.info("merging {}@{} to {}".format(source, ",".join(map(str,revisions)), dest))
+        revision_cmd = " ".join("-c {}".format(r) for r in revisions)
+        self.cmd("svn merge {} {} {} --accept postpone".format(revision_cmd, source, dest))
+        self.messages.append(self.get_commit_msg(source, revisions))
 
-    def get_commit_msg(self, url, revision):
-        lines = []
-        io.cmd("svn log {} -r {}".format(url, revision), logger=lines.append)
-        return "\n".join(["merged from {}@{}".format(url, revision)] + lines[4:-1])
+    def get_commit_msg(self, url, revisions):
+        blocks = []
+        for revision in revisions:
+            lines = []
+            io.cmd("svn log {} -r {}".format(url, revision), logger=lines.append)
+            blocks.append("\n".join(lines[4:-1]))
+        return "\n".join(["merged from {}@{}".format(url, ",".join(map(str,revisions)))] + blocks)
 
     def update(self, repo):
         logging.info("updating {}".format(repo))

@@ -11,8 +11,6 @@ def setup_log(app_name, loglevel=logging.INFO):
                         filemode='w')
     console = logging.StreamHandler()
     console.setLevel(loglevel)
-    formatter = logging.Formatter(format)
-    console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
     logging.info("logging to {}".format(logfile))
 

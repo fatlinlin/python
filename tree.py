@@ -96,10 +96,10 @@ class Tree:
         main_branches = self._load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self._load_client_branches(clients_grps, main_branches)
 
-    def merge(self, src_name, commit):
+    def merge(self, src_name, commits):
         branch = self.branches[src_name]
         for dest_branch in branch.merge_targets():
-            self.client.run(branch, dest_branch, commit)
+            self.client.run(branch, dest_branch, commits)
         self.client.write_commit_messages()
 
     def collect_logs(self, src_name):
