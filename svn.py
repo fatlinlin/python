@@ -41,7 +41,6 @@ class SvnClient:
     def update(self, repo):
         logging.info("updating {}".format(repo))
         self.cmd("svn update {}".format(repo))
-
         
     def compile(self, path):
         io.run_script(path, "build_rt.bat")
@@ -49,8 +48,8 @@ class SvnClient:
 
     def write(self, suffix, lines):
         path = "{}.{}.log".format(self.log_base_path, suffix)
-        logging.info("writing commit messages to {}".format(path))
-        with open(path , "a") as fh:
+        logging.info("writing to {}".format(path))
+        with open(path , "w") as fh:
             for msg in lines:
                 fh.write('\n')
                 fh.write(msg.strip())
@@ -62,7 +61,11 @@ class SvnClient:
         lines = []
         io.cmd("svn log {} -v -l {}".format(branch.svn_path, log_depth), logger=lines.append)
         lines = list(self.parse_svn_log(lines))
-        self.write("ticket_message", lines)
+        return lines
+
+    def get_last_commit_revision(self, branch, log_depth=10):
+        infos = self.get_last_commit_info(branch)[0]
+        return int(re.match("r(\w+)", infos).group(1))
 
     def find_usr_commit(self, lines):
         usr_regex = re.compile("(\w*?) \| (\w*?) \|.*")

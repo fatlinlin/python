@@ -104,8 +104,12 @@ class Tree:
 
     def collect_logs(self, src_name):
         branch = self.branches[src_name]
-        messages = [self.client.get_last_commit_info(branch)]
+        messages = self.client.get_last_commit_info(branch)
         for dest_branch in branch.merge_targets():
-            messages.append(self.client.get_last_commit_info(dest_branch))
+            messages.extend(self.client.get_last_commit_info(dest_branch))
+        self.client.write("ticket_message", messages)
         return messages
+
+    def get_last_commit_revision(self, branch_name):
+        return self.client.get_last_commit_revision(self.branches[branch_name])
 

@@ -1,9 +1,9 @@
 import subprocess
 import logging
 
-def setup_log(app_name, loglevel=logging.INFO):
+def setup_log(log_base, loglevel=logging.INFO):
     format = '%(name)-8s %(levelname)-8s %(message)s'
-    logfile = './{}.log'.format(app_name)
+    logfile = '{}.log'.format(log_base)
     logging.basicConfig(level=logging.DEBUG,
                         format="%(asctime)s " + format,
                         datefmt='%m-%d %H:%M',
