@@ -26,12 +26,12 @@ def run(args):
     path = repo.find_src_dir(args.srcdir)
     client = svn.SvnClient()
     client.dry_run = args.dry_run
-    client.log_base_path = "c:/merge"
+    client.log_base_path = "c:/switch"
     if args.update:
         client.update(path)
     repo.switch(path)
     if args.build:
-        client.compile(DEV_DIR)
+        client.compile(repo.DEV_DIR)
     
 if __name__ == "__main__":
     run(setup())
