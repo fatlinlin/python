@@ -48,12 +48,12 @@ def find_src_dir(path):
         selection = 0
     return true_dirs[selection]
 
-    
+
 class Target:
 
     root_names = map(os.path.basename, ROOTS)
     root_names.sort()
-    
+
     def __init__(self, name):
         self.name = name
         self.srcs = set()

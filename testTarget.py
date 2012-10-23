@@ -1,11 +1,11 @@
 import unittest
-import switch
+import repo
 from mock import Mock
 
 class TestTarget(unittest.TestCase):
 
     def setUp(self):
-        self.target = switch.Target("myTarget")
+        self.target = repo.Target("myTarget")
         self.target.root_names = ["git", "svn"]
 
     def test_print_svn(self):

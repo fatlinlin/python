@@ -69,7 +69,7 @@ class Trunk(Branch):
 
     def next(self):
         raise StopIteration()
-        
+
 class Tree:
 
     def __init__(self, repo_graph, client):
@@ -96,9 +96,13 @@ class Tree:
         main_branches = self._load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self._load_client_branches(clients_grps, main_branches)
 
-    def merge(self, src_name, commits):
+    def merge(self, src_name, commits, target_names=None):
         branch = self.branches[src_name]
-        for dest_branch in branch.merge_targets():
+        if target_names is None:
+            targets = branch.merge_targets()
+        else:
+            targets = (self.branches[name] for name in target_names)
+        for dest_branch in targets:
             self.client.run(branch, dest_branch, commits)
         self.client.write_commit_messages()
 
@@ -112,4 +116,3 @@ class Tree:
 
     def get_last_commit_revision(self, branch_name):
         return self.client.get_last_commit_revision(self.branches[branch_name])
-
