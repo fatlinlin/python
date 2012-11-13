@@ -19,15 +19,15 @@ def load_conf():
 def add_args(parser, client):
     parser.add_argument("-b",
                         "--branch",
-                        help="the branch to merge")
+                        help="the branch to merge (default: the current branch in dev4.1)")
     parser.add_argument("-r",
                         "--revisions",
-                        help="the commits to merge",
+                        help="the commits to merge (defaults: the last commit by the user in the branch to be merged)",
                         type=int,
                         nargs='+')
     parser.add_argument("-t",
                         "--targets",
-                        help="the targets of the merge",
+                        help="the targets of the merge (default: the list of more recent main branches)",
                         nargs='+')
     parser.add_argument("-d",
                         "--dry_run",
@@ -62,6 +62,7 @@ def run():
     if args.revisions is None:
         args.revisions = [myTree.get_last_commit_revision(args.branch)]
         logging.info("using last commit from {}: {}".format(client.user, args.revisions[0]))
+    args.revisions.sort()
     if args.getlog:
         myTree.collect_logs(args.branch)
     elif args.targets:

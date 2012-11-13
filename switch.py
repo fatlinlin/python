@@ -16,7 +16,7 @@ def setup():
     args = parser.parse_args()
     io.setup_log("c:/switch", logging.DEBUG if args.verbose else logging.INFO)
     return args
-    
+
 def run(args):
     if args.srcdir is None:
         logging.info("currently on {}".format(repo.get_current_target()))
@@ -32,6 +32,6 @@ def run(args):
     repo.switch(path)
     if args.build:
         client.compile(repo.DEV_DIR)
-    
+
 if __name__ == "__main__":
     run(setup())

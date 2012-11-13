@@ -2,6 +2,7 @@ import argparse
 import io
 import logging
 import re
+import os
 
 class SvnClient:
 
@@ -41,10 +42,12 @@ class SvnClient:
     def update(self, repo):
         logging.info("updating {}".format(repo))
         self.cmd("svn update {}".format(repo))
-        
+
     def compile(self, path):
         io.run_script(path, "build_rt.bat")
         io.run_script(path, "msbuild_RSK.bat")
+        if os.path.exists(os.path.join(path, "msbuild_FrontCube.bat")):
+            io.run_script(path, "msbuild_FrontCube.bat")
 
     def write(self, suffix, lines):
         path = "{}.{}.log".format(self.log_base_path, suffix)
