@@ -33,7 +33,7 @@ function test_handle(req) {
     set_status(response.status)
     for (var box in ttt.grid)
     {
-	ttt.grid[box].innerHTML = response.grid[box]
+    ttt.grid[box].innerHTML = response.grid[box]
     }
 }
 
@@ -51,26 +51,26 @@ function getJSONGrid() {
     var res = {};
     for (var i in ttt.grid)
     {
-	res[i] = ttt.grid[i].innerHTML
+    res[i] = ttt.grid[i].innerHTML
     }
     return JSON.stringify({grid : res});
 }
 
 var ttt = {
     players : {
-	human : new Player("o"),
-	computer : new Player("x")
+    human : new Player("o"),
+    computer : new Player("x")
     },
     grid : (function() {
-	var res = {};
-	var boxes = document.getElementsByTagName("td");
-	for (var i = 0; i < 9; i++)
-	{
-	    var box = boxes[i];
-	    var id = box.id;
-	    res[id] = box;
-	}
-	return res
+    var res = {};
+    var boxes = document.getElementsByTagName("td");
+    for (var i = 0; i < 9; i++)
+    {
+        var box = boxes[i];
+        var id = box.id;
+        res[id] = box;
+    }
+    return res
     })()
 }
 
@@ -78,7 +78,7 @@ function reset() {
     var reseter = new Player("");
     for (var i in ttt.grid)
     {
-	reseter.play(i);
+    reseter.play(i);
     }
     initEvents();
     xml_http_post("reset", {}, function() {})
@@ -87,17 +87,17 @@ function reset() {
 function initEvents() {
     for (var i in ttt.grid)
     {
-	var box = ttt.grid[i];
-	box.onclick = (function() {
-	    var id = box.id;
-	    return function() {
-		ttt.players.human.play(id);
-		var data = getJSONGrid();
-		xml_http_post("play/" + id, data, test_handle)
-	    };
-	})();
+    var box = ttt.grid[i];
+    box.onclick = (function() {
+        var id = box.id;
+        return function() {
+        ttt.players.human.play(id);
+        var data = getJSONGrid();
+        xml_http_post("play/" + id, data, test_handle)
+        };
+    })();
     }
     document.getElementById("reset").onclick = reset
+    windows.onload = reset
     set_status("start")
 }
-

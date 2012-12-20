@@ -9,6 +9,7 @@ app.debug = True
 
 
 grid = tic.Grid()
+tictactoeRenderer = render.GamePresenter("tic tac toe", "tictactoe", ["tictactoe"])
 
 @app.route("/css/<file>")
 def serveCss(file):
@@ -29,7 +30,7 @@ def serveRootFile(file):
 
 @app.route("/tictactoe")
 def tictactoe():
-    return render.render("tictactoe", {}, {"title" : "tic tac toe", "scripts" : [{"path" : "/js/tictactoe.js"}]})
+    return tictactoeRenderer.render({})
 
 @app.route("/")
 def index():
