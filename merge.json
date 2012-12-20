@@ -1,15 +1,17 @@
 {
     "repo" :
     [
-	["40", []],
-	["50", ["50-acoss"]],
-	["60",
-	 [
-	     "65-mercator",
-	     "60-adp",
-	     "60-bdfsigma"
-	 ]
-	]
+        ["40", []],
+        ["50", ["50-acoss"]],
+        [
+            "60",
+            [
+                "65-mercator",
+                "65-mercator2",
+                "60-adp",
+                "60-bdfsigma"
+            ]
+        ]
     ],
     "user" : "sberg",
     "log" : "c:/merge"
