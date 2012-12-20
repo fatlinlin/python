@@ -1,7 +1,8 @@
 import os
 import json
-import tic
 from flask import Flask, jsonify, render_template, request
+import tic
+import render
 app = Flask(__name__)
 app.debug = True
 
@@ -28,7 +29,7 @@ def serveRootFile(file):
 
 @app.route("/tictactoe")
 def tictactoe():
-   return serveRootFile("tictactoe.html")
+    return render.render("tictactoe", {}, {"title" : "tic tac toe", "scripts" : [{"path" : "/js/tictactoe.js"}]})
 
 @app.route("/")
 def index():
