@@ -4,6 +4,7 @@ import io
 import os
 
 DEV_DIR = r"c:\dev4.1"
+RSK_DIR = os.path.join(DEV_DIR, "srcrsk")
 TRUNK_DIR = r"c:\SVN\trunk4.1"
 CONVERTER = "ProjectConverter"
 CONVERTER_PATH = os.path.join(TRUNK_DIR, "tools", CONVERTER)
@@ -38,8 +39,9 @@ def switch(srcdir):
     if os.path.exists(os.path.join(DEV_DIR, "Switch.cmd")):
         logging.info("Running Switch.cmd")
         io.cmd("Switch.cmd", cwd=DEV_DIR, logger=logging.getLogger("Switch.cmd").debug)
-    if os.path.exists(os.path.join(DEV_DIR, "vs2008.srcrsk.All.xml")):
-        io.cmd(CONVERTER + ".exe" + " vs2008.srcrsk.All.xml",
+    if os.path.exists(os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml")):
+        logging.info("Running ProjectConverter")
+        io.cmd(CONVERTER + ".exe " + os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml"),
                cwd=CONVERTER_PATH,
                logger=logging.getLogger(CONVERTER).debug)
 
