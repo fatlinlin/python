@@ -28,12 +28,12 @@ def play(grid):
     grid.play(box, "o")
 
 class Grid:
-    
+
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
-        self.grid = {tic.box(x, y) : "" for x in range(1, 4) for y in range(1, 4)}
+        self.grid = {box(x, y) : "" for x in range(1, 4) for y in range(1, 4)}
 
     def isfree(self, box):
         return self.grid[box] == ""

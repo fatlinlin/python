@@ -7,24 +7,32 @@ app.debug = True
 
 
 
-grid = Grid()
+grid = tic.Grid()
 
 @app.route("/css/<file>")
-def css(file):
+def serveCss(file):
     with open(os.path.join("css", file)) as fp:
         return fp.read()
 
 @app.route("/js/<file>")
-def js(file):
+def serveJs(file):
     with open(os.path.join("js", file)) as fp:
         return fp.read()
 
 @app.route("/<file>")
-def hello(file):
+def serveRootFile(file):
     if file == u'favicon.ico':
         return ""
     with open(file) as fp:
         return fp.read()
+
+@app.route("/tictactoe")
+def tictactoe():
+   return serveRootFile("tictactoe.html")
+
+@app.route("/")
+def index():
+    return serveRootFile("index.html")
 
 @app.route("/reset", methods=["POST"])
 def reset():
@@ -41,7 +49,7 @@ def play(box):
     status = grid.check_status()
     if status != "continue":
         return jsonify(status = status, grid = grid.grid)
-    
+
     tic.play(grid)
     status = grid.check_status()
     return jsonify(
@@ -50,5 +58,4 @@ def play(box):
             )
 
 if __name__ == "__main__":
-
     app.run()
