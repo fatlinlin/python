@@ -1,0 +1,11 @@
+Class {{className}}
+    {{#members}}
+    private {{name}} As {{type}}
+    {{/members}}
+
+    Sub New({{#members}}ByVal a{{name}} As {{type}}{{sep}}{{/members}})
+        {{#members}}
+        Me.{{name}} = a{{name}}
+        {{/members}}
+    End Sub
+End Class

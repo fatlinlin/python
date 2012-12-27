@@ -1,0 +1,14 @@
+class {{className}}
+{
+    {{#members}}
+    private {{type}} {{name}};
+    {{/members}}
+
+    {{className}}({{#members}}{{type}} a{{name}}{{sep}}{{/members}})
+    {
+        {{#members}}
+        this.{{name}} = a{{name}};
+        {{/members}}
+    }
+
+}
