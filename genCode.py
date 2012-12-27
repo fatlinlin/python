@@ -4,6 +4,11 @@ import pystache
 import logging
 import io
 
+TYPES = {
+    "s" : {"cs" : "string", "vb" : "String"},
+    "i" : {"cs" : "int", "vb" : "Integer"}
+}
+
 def addSep(separator, data):
     for row in data[:-1]:
         row["sep"] = separator
@@ -17,11 +22,11 @@ def setup():
     args = parser.parse_args()
     return args
 
-def parseMembers(serializedMembers):
+def parseMembers(serializedMembers, types):
     members = []
     for token in serializedMembers.split(","):
         name, type = token.split(":")
-        members.append({"name" : name, "type" : type})
+        members.append({"name" : name, "type" : types.get(type, type)})
     return members
 
 def getTemplate(language):
@@ -29,11 +34,15 @@ def getTemplate(language):
     with open(templatePath) as fp:
         return fp.read()
 
+def getTypes(language):
+    return {key : TYPES[key][language] for key in TYPES}
+
 if __name__ == "__main__":
     args = setup()
     template = getTemplate(args.language)
+    members = parseMembers(args.members, getTypes(args.language))
     model = {
         "className" : args.className,
-        "members" : addSep(", ", parseMembers(args.members))
+        "members" : addSep(", ", members)
         }
     print pystache.render(template, model)
