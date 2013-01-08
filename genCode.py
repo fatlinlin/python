@@ -4,6 +4,8 @@ import pystache
 import logging
 import io
 
+ROOT = os.path.dirname(__file__)
+
 TYPES = {
     "s" : {"cs" : "string", "vb" : "String"},
     "i" : {"cs" : "int", "vb" : "Integer"}
@@ -30,7 +32,7 @@ def parseMembers(serializedMembers, types):
     return members
 
 def getTemplate(language):
-    templatePath = os.path.join("templates", language + "Class.mustache")
+    templatePath = os.path.join(ROOT, "templates", language + "Class.mustache")
     with open(templatePath) as fp:
         return fp.read()
 
