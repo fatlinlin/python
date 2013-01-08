@@ -1,6 +1,6 @@
 import unittest
-import tree
-import svn
+from efront import tree
+from efront import svn
 from mock import Mock
 
 class TestTree(unittest.TestCase):

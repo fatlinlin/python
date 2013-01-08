@@ -1,8 +1,8 @@
 import argparse
 import logging
-import io
-import svn
-import repo
+from efront import io
+from efront import svn
+from efront import repo
 
 def setup():
     client = svn.SvnClient()

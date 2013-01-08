@@ -2,10 +2,10 @@ import argparse
 import os
 import json
 import logging
-import io
-import tree
-import svn
-import repo
+from efront import io
+from efront import tree
+from efront import svn
+from efront import repo
 
 def setup_client(client, args, conf):
     client.dry_run = args.dry_run

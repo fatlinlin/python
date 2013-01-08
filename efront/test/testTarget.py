@@ -1,5 +1,5 @@
 import unittest
-import repo
+from efront import repo
 from mock import Mock
 
 class TestTarget(unittest.TestCase):
