@@ -4,6 +4,11 @@ import logging
 import re
 import os
 
+
+TRUNK_DIR = r"c:\SVN\trunk4.1"
+CONVERTER = "ProjectConverter"
+CONVERTER_PATH = os.path.join(TRUNK_DIR, "tools", CONVERTER)
+
 class SvnClient:
 
     def __init__(self):
@@ -48,6 +53,11 @@ class SvnClient:
         io.run_script(path, "msbuild_RSK.bat")
         if os.path.exists(os.path.join(path, "msbuild_FrontCube.bat")):
             io.run_script(path, "msbuild_FrontCube.bat")
+        if os.path.exists(os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml")):
+            logging.info("Running ProjectConverter")
+            io.cmd(CONVERTER + ".exe " + os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml"),
+                   cwd=CONVERTER_PATH,
+                   logger=logging.getLogger(CONVERTER).debug)
 
     def write(self, suffix, lines):
         path = "{}.{}.log".format(self.log_base_path, suffix)
