@@ -5,9 +5,11 @@ import re
 import os
 
 
+DEV_DIR = r"c:\dev4.1"
 TRUNK_DIR = r"c:\SVN\trunk4.1"
 CONVERTER = "ProjectConverter"
 CONVERTER_PATH = os.path.join(TRUNK_DIR, "tools", CONVERTER)
+RSK_DIR = os.path.join(DEV_DIR, "srcrsk")
 
 class SvnClient:
 
@@ -34,9 +36,8 @@ class SvnClient:
         logging.info("merging {}@{} to {}".format(source, ",".join(map(str,revisions)), dest))
         revision_cmd = " ".join("-c {}".format(r) for r in revisions)
         self.cmd("svn merge {} {} {} --accept postpone".format(revision_cmd, source, dest))
-        self.messages.append(self.get_commit_msg(source, revisions))
 
-    def get_commit_msg(self, url, revisions):
+    def get_merge_commit_msg(self, url, revisions):
         blocks = []
         for revision in revisions:
             lines = []
@@ -58,6 +59,11 @@ class SvnClient:
             io.cmd(CONVERTER + ".exe " + os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml"),
                    cwd=CONVERTER_PATH,
                    logger=logging.getLogger(CONVERTER).debug)
+        logging.info("Generating vb model")
+        frontAdminPath = os.path.join(DEV_DIR, "website", "bin")
+        io.cmd("FrontAdmin.exe" + " /generatevbmodel /x",
+               cwd=frontAdminPath,
+               logger=logging.getLogger("FrontAdmin").debug)
 
     def write(self, suffix, lines):
         path = "{}.{}.log".format(self.log_base_path, suffix)
@@ -107,5 +113,6 @@ class SvnClient:
             source.svn_path,
             rev,
             dest.disk_path)
+        self.messages.append(self.get_merge_commit_msg(source.svn_path, rev))
         if "compile" in self.tasks:
             self.compile(dest.disk_path)

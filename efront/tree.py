@@ -95,11 +95,6 @@ class Tree:
         main_branches_names, clients_grps = zip(*branches)
         main_branches = self._load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self._load_client_branches(clients_grps, main_branches)
-        # hack!!!
-        # move to xml mergeinfo to fix
-        #
-        if "65-mercator" in self.branches:
-            self.branches["65-mercator"].next = lambda : self.branches["65-mercator2"]
 
     def merge(self, src_name, commits, target_names=None):
         branch = self.branches[src_name]

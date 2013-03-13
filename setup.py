@@ -6,7 +6,7 @@ setup(
     author='Simon Bergot',
     author_email='sbergot@efront.com',
     packages=['efront', 'efront.test'],
-    scripts=['bin/genCode.py', 'bin/switch.py', 'bin/merge.py'],
+    scripts=['bin/genCode.py', 'bin/switch.py', 'bin/merge.py', 'bin/merge.json'],
     license='LICENSE.txt',
     description='useful env tools',
     long_description=open('README.md').read(),

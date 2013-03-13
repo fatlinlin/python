@@ -4,8 +4,6 @@ import io
 import os
 
 DEV_DIR = r"c:\dev4.1"
-RSK_DIR = os.path.join(DEV_DIR, "srcrsk")
-TRUNK_DIR = r"c:\SVN\trunk4.1"
 ROOTS = [
     r"c:\svn",
     r"c:\git",

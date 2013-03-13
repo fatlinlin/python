@@ -11,7 +11,8 @@
                 "60-adp",
                 "60-bdfsigma"
             ]
-        ]
+        ],
+        ["65", []]
     ],
     "user" : "sberg",
     "log" : "c:/merge"
