@@ -1,7 +1,7 @@
 import logging
 import re
-import io
 import os
+from efront import iohelpers as io
 
 DEV_DIR = r"c:\dev4.1"
 ROOTS = [
@@ -13,7 +13,7 @@ def get_current_target():
     regex = re.compile("<JUNCTION> +dev4\.1 \[(.*)\]")
     matches = []
     def get_match(line):
-        m = regex.search(line)
+        m = regex.search(str(line))
         if m is None:
             return
         matches.append(m.group(1))
@@ -42,7 +42,7 @@ def find_src_dir(path):
     if len(true_dirs) == 0:
         raise Exception("{} not found".format(path))
     if len(true_dirs) > 1:
-        print "\n".join("{} - {}".format(i, p) for i, p in enumerate(true_dirs))
+        print("\n".join("{} - {}".format(i, p) for i, p in enumerate(true_dirs)))
         selection = int(raw_input("please select source: "))
     else:
         selection = 0
@@ -51,7 +51,7 @@ def find_src_dir(path):
 
 class Target:
 
-    root_names = map(os.path.basename, ROOTS)
+    root_names = list(map(os.path.basename, ROOTS))
     root_names.sort()
 
     def __init__(self, name):

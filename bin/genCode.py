@@ -2,7 +2,6 @@ import os
 import argparse
 import pystache
 import logging
-import io
 
 ROOT = os.path.dirname(__file__)
 

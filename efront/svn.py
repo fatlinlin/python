@@ -1,9 +1,8 @@
 import argparse
-import io
 import logging
 import re
 import os
-
+from efront import iohelpers as io
 
 DEV_DIR = r"c:\dev4.1"
 TRUNK_DIR = r"c:\SVN\trunk4.1"

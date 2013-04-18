@@ -2,21 +2,23 @@ import argparse
 import os
 import json
 import logging
-from efront import io
+from efront import iohelpers as io
 from efront import tree
 from efront import svn
 from efront import repo
 
-def setup_client(client, args, conf):
-    client.dry_run = args.dry_run
-    client.log_base_path = conf["log"]
-    client.user = conf["user"]
+CLIENT = svn.SvnClient()
+
+def setup_client(args, conf):
+    CLIENT.dry_run = args.dry_run
+    CLIENT.log_base_path = conf["log"]
+    CLIENT.user = conf["user"]
 
 def load_conf():
     with open(os.path.join(os.path.dirname(__file__), "merge.json")) as conf:
         return json.load(conf)
 
-def add_args(parser, client):
+def add_args(parser):
     parser.add_argument("-b",
                         "--branch",
                         help="the branch to merge (default: the current branch in dev4.1)")
@@ -40,28 +42,24 @@ def add_args(parser, client):
     parser.add_argument("-c",
                         "--compile",
                         help="compiles the merged working copies",
-                        action=client.task("compile"),
+                        action=CLIENT.task("compile"),
                         nargs=0)
     parser.add_argument("-l",
                         "--getlog",
                         help="collect the last logs of a user",
                         action="store_true")
 
-def run():
-    client = svn.SvnClient()
-    parser = argparse.ArgumentParser(description="merge tool")
-    add_args(parser, client)
-    args = parser.parse_args()
+def run(args):
     conf = load_conf()
-    setup_client(client, args, conf)
+    setup_client(args, conf)
     io.setup_log(conf["log"], logging.DEBUG if args.verbose else logging.INFO)
-    myTree = tree.Tree(conf["repo"], client)
+    myTree = tree.Tree(conf["repo"], CLIENT)
     if args.branch is None:
         args.branch = os.path.basename(repo.get_current_target())
         logging.info("using current branch: {}".format(args.branch))
     if args.revisions is None:
         args.revisions = [myTree.get_last_commit_revision(args.branch)]
-        logging.info("using last commit from {}: {}".format(client.user, args.revisions[0]))
+        logging.info("using last commit from {}: {}".format(CLIENT.user, args.revisions[0]))
     args.revisions.sort()
     if args.getlog:
         myTree.collect_logs(args.branch)
@@ -71,4 +69,7 @@ def run():
         myTree.merge(args.branch, args.revisions)
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(description="merge tool")
+    add_args(parser)
+    args = parser.parse_args()
+    run(args)

@@ -23,15 +23,18 @@ def cmd(command, *args, **kwargs):
     log(command)
     if dry_run:
         return
-    p = subprocess.Popen(command, *args, shell=True, stdout=subprocess.PIPE, **kwargs) 
-    if skip_pause:
-        p.stdin.write(" ")
+    p = subprocess.Popen(command,
+                         *args,
+                         shell=True,
+                         stdout=subprocess.PIPE,
+                         **kwargs)
     for line in p.stdout:
         log(line.strip())
+    if skip_pause:
+        p.communicate(b" ")
     p.wait()
     if p.returncode:
         raise subprocess.CalledProcessError(p.returncode, command)
-
 
 def run_script(root, tool):
     logging.info("launching {}".format(tool))

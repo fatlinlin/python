@@ -10,7 +10,7 @@ import pysvn
 modDir = os.path.dirname(__file__)
 
 class Config:
-    
+
     def __init__(self, path):
         self.path = path
 
@@ -49,15 +49,15 @@ class Env:
 def choose(aList, msg=None):
     assert len(aList) > 0
     if msg is not None:
-        print msg
+        print(msg)
     for i, elmt in enumerate(aList):
-        print "{} - {}".format(i, elmt)
+        print("{} - {}".format(i, elmt))
     while True:
         try:
             return aList[int(raw_input("choose a number between 0 and {}:".format(len(aList) - 1)))]
         except:
             pass
-    
+
 def deploy_env(env, path):
     # checkout
     svn = pysvn.Client()
@@ -76,7 +76,7 @@ def deploy_env(env, path):
     subprocess.check_call("Switch.cmd", cwd=path)
     subprocess.check_call("build_rt.bat", cwd=path)
     subprocess.check_call("msbuild_RSK.bat", cwd=path)
-    
+
 if __name__ == "__main__":
    env = Env("delta loyd")
-   print choose(env.config.get_connection_strings())
+   print(choose(env.config.get_connection_strings()))
