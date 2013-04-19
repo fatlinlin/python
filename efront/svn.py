@@ -18,7 +18,6 @@ class SvnClient:
         self.taskNames = set()
         self.user = None
         self.log_base_path = None
-        self.messages = []
 
     def task(self, *names):
         class TaskAction(argparse.Action):
@@ -72,46 +71,32 @@ class SvnClient:
                 fh.write('\n')
                 fh.write(msg.strip())
 
-    def write_commit_messages(self):
-        self.write("commit_message", self.messages)
-
     def get_last_commit_info(self, branch, log_depth=10):
         lines = []
-        io.cmd("svn log {} -v -l {}".format(branch.svn_path, log_depth), logger=lines.append)
-        lines = list(self.parse_svn_log(lines))
-        return lines
-
-    def get_last_commit_revision(self, branch, log_depth=10):
-        infos = self.get_last_commit_info(branch)[0]
-        return int(re.match("r(\w+)", infos).group(1))
+        io.cmd("svn log {} -l {}".format(branch.svn_path, log_depth), logger=lines.append)
+        return self.find_usr_commit(lines)
 
     def find_usr_commit(self, lines):
-        usr_regex = re.compile("(\w*?) \| (\w*?) \|.*")
-        for i, line in enumerate(lines):
+        usr_regex = re.compile("r(\w+?) \| (\w+?) \|.*")
+        empty_line_it = filter(bool, lines) # iterator ignoring empty lines
+        for line in empty_line_it:
             m = usr_regex.match(line)
             if m is None:
                 continue
             if m.group(2) == self.user:
-                return i
-        raise RuntimeError("could not find user {} in logs".format(self.user))
+                break
+        if m is None or m.group(2) != self.user:
+            raise RuntimeError("could not find user {} in logs".format(self.user))
+        description = next(empty_line_it)
+        return {"user" : m.group(2),
+                "revision" : int(m.group(1)),
+                "description" : description}
 
-    def parse_svn_log(self, lines):
-        i = self.find_usr_commit(lines)
-        for line in lines[i:]:
-            if line.startswith("--"):
-                yield ""
-                yield "-" * 50
-                yield ""
-                return
-            yield line
-        return
-
-    def run(self, source, dest, rev):
+    def run(self, source, dest, revisions):
         self.update(dest.disk_path)
         self.merge(
             source.svn_path,
-            rev,
+            revisions,
             dest.disk_path)
-        self.messages.append(self.get_merge_commit_msg(source.svn_path, rev))
         if "compile" in self.tasks:
             self.compile(dest.disk_path)

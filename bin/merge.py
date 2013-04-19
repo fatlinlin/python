@@ -58,8 +58,10 @@ def run(args):
         args.branch = os.path.basename(repo.get_current_target())
         logging.info("using current branch: {}".format(args.branch))
     if args.revisions is None:
-        args.revisions = [myTree.get_last_commit_revision(args.branch)]
-        logging.info("using last commit from {}: {}".format(CLIENT.user, args.revisions[0]))
+        last_commit = CLIENT.get_last_commit_info(myTree.branches[args.branch])
+        args.revisions = [last_commit["revision"]]
+        logging.info("using last commit from {user}: {revision}".format(**last_commit))
+        logging.info("commit description: {description}".format(**last_commit))
     args.revisions.sort()
     if args.getlog:
         myTree.collect_logs(args.branch)

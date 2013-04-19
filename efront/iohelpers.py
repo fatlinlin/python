@@ -23,15 +23,19 @@ def cmd(command, *args, **kwargs):
     log(command)
     if dry_run:
         return
+
+
     p = subprocess.Popen(command,
                          *args,
                          shell=True,
                          stdout=subprocess.PIPE,
                          **kwargs)
-    for line in p.stdout:
-        log(line.strip())
     if skip_pause:
-        p.communicate(b" ")
+        stdout, stderr = p.communicate(b" ")
+    else:
+        stdout, stderr = p.communicate()
+    for line in stdout.decode("latin-1").split('\n'):
+        log(line.strip())
     p.wait()
     if p.returncode:
         raise subprocess.CalledProcessError(p.returncode, command)

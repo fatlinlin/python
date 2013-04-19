@@ -18,7 +18,7 @@ def get_current_target():
             return
         matches.append(m.group(1))
     io.cmd("dir", cwd="c:\\", logger=get_match)
-    assert len(matches) == 1
+    assert len(matches) == 1, "multiple junctions found: {}".format(matches)
     return matches[0]
 
 def remove_junction(junction_path):

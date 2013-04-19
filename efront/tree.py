@@ -12,7 +12,7 @@ class BranchIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         self.branch = self.branch.next()
         return self.branch
 
@@ -96,17 +96,19 @@ class Tree:
         main_branches = self._load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
         self._load_client_branches(clients_grps, main_branches)
 
-    def merge(self, src_name, commits, target_names=None):
+    def merge(self, src_name, revisions, target_names=None):
         branch = self.branches[src_name]
+        commit_message = self.client.get_merge_commit_msg(branch.svn_path, revisions)
+        logging.info(commit_message)
         if target_names is None:
             targets = branch.merge_targets()
         else:
             targets = (self.branches[name] for name in target_names)
         for dest_branch in targets:
-            self.client.run(branch, dest_branch, commits)
-        self.client.write_commit_messages()
+            self.client.run(branch, dest_branch, revisions)
 
     def collect_logs(self, src_name):
+        # broken
         branch = self.branches[src_name]
         messages = self.client.get_last_commit_info(branch)
         for dest_branch in branch.merge_targets():
