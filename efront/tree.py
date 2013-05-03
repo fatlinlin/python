@@ -4,18 +4,6 @@ import logging
 DEFAULT_SVN_ROOT = r"https://src.frontsrv.com/svn/repository/branches4/rsk"
 DEFAULT_DISK_ROOT = r"c:\svn"
 
-class BranchIterator(object):
-
-    def __init__(self, branch):
-        self.branch = branch
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        self.branch = self.branch.next()
-        return self.branch
-
 class Branch(object):
 
     def __init__(self, name):
@@ -31,35 +19,11 @@ class Branch(object):
     def disk_path(self):
         return os.path.join(self.disk_root, self.name)
 
-    def merge_targets(self):
-        return BranchIterator(self)
-
-    def next(self):
-        raise NotImplementedError()
-
     def __repr__(self):
         return "{}(name={})".format(self.__class__.__name__, self.name)
 
     def __eq__(self, other):
         return self.name == other.name and type(self) == type(other)
-
-class ClientBranch(Branch):
-
-    def __init__(self, name, parent):
-        super(ClientBranch, self).__init__(name)
-        self.parent = parent
-
-    def next(self):
-        return self.parent.next_version
-
-class MainBranch(Branch):
-
-    def __init__(self, name, next_version):
-        super(MainBranch, self).__init__(name)
-        self.next_version = next_version
-
-    def next(self):
-        return self.next_version
 
 class Trunk(Branch):
 
@@ -67,41 +31,45 @@ class Trunk(Branch):
         super(Trunk, self).__init__("trunk4.1")
         self.svn_root = r"https://src.frontsrv.com/svn/repository"
 
-    def next(self):
-        raise StopIteration()
+class MergePath(object):
+
+    def __init__(self, paths):
+        self.paths = paths
+
+    def merge_targets(self, src_name):
+        yield from self.merge_path_from(src_name)
+        yield Trunk()
+
+    def merge_path_from(self, src_name):
+        if src_name not in self.paths:
+            return
+        dst = self.paths[src_name]
+        yield Branch(dst)
+        yield from self.merge_path_from(dst)
+
+class BranchServer(object):
+
+    def __init__(self):
+        self.branches = {"trunk4.1" : Trunk()}
+
+    def __getitem__(self, key):
+        if key not in self.branches:
+            self.branches[key] = Branch(key)
+        return self.branches[key]
 
 class Tree:
 
     def __init__(self, repo_graph, client):
-        self.branches = {"trunk4.1" : Trunk()}
-        self.load_tree(repo_graph)
+        self.merge_path  = MergePath(repo_graph)
+        self.branches = BranchServer()
         self.client = client
-
-    def _load_main_branches(self, names, head):
-        try:
-            name = names.pop()
-        except IndexError:
-            return []
-        branch = MainBranch(name, head)
-        self.branches[name] = branch
-        return self._load_main_branches(names, branch) + [branch]
-
-    def _load_client_branches(self, client_grps, main_branches):
-        for main, clients in zip(main_branches, client_grps):
-            for client in clients:
-                self.branches[client] = ClientBranch(client, main)
-
-    def load_tree(self, branches):
-        main_branches_names, clients_grps = zip(*branches)
-        main_branches = self._load_main_branches(list(main_branches_names), self.branches["trunk4.1"])
-        self._load_client_branches(clients_grps, main_branches)
 
     def merge(self, src_name, revisions, target_names=None):
         branch = self.branches[src_name]
         commit_message = self.client.get_merge_commit_msg(branch.svn_path, revisions)
         logging.info(commit_message)
         if target_names is None:
-            targets = branch.merge_targets()
+            targets = self.merge_path.merge_targets(src_name)
         else:
             targets = (self.branches[name] for name in target_names)
         for dest_branch in targets:
@@ -109,6 +77,7 @@ class Tree:
 
     def collect_logs(self, src_name):
         # broken
+        raise NotImplementedError()
         branch = self.branches[src_name]
         messages = self.client.get_last_commit_info(branch)
         for dest_branch in branch.merge_targets():
