@@ -47,16 +47,22 @@ class SvnClient:
         logging.info("updating {}".format(repo))
         self.cmd("svn update {}".format(repo))
 
+    def try_generate_custom_solution(vs_version):
+        config_path = os.path.join(RSK_DIR, "vs{}.srcrsk.All.xml".format(vs_version))
+        if not os.path.exists(config_path):
+            return
+        logging.info("Running ProjectConverter on {}".format(config_path))
+        io.cmd(CONVERTER + ".exe " + os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml"),
+               cwd=CONVERTER_PATH,
+               logger=logging.getLogger(CONVERTER).debug)
+
     def compile(self, path):
         io.run_script(path, "build_rt.bat")
         io.run_script(path, "msbuild_RSK.bat")
         if os.path.exists(os.path.join(path, "msbuild_FrontCube.bat")):
             io.run_script(path, "msbuild_FrontCube.bat")
-        if os.path.exists(os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml")):
-            logging.info("Running ProjectConverter")
-            io.cmd(CONVERTER + ".exe " + os.path.join(RSK_DIR, "vs2008.srcrsk.All.xml"),
-                   cwd=CONVERTER_PATH,
-                   logger=logging.getLogger(CONVERTER).debug)
+        try_generate_custom_solution("2008")
+        try_generate_custom_solution("2012")
         logging.info("Generating vb model")
         frontAdminPath = os.path.join(DEV_DIR, "website", "bin")
         io.cmd("FrontAdmin.exe" + " /generatevbmodel /x",
@@ -71,9 +77,12 @@ class SvnClient:
                 fh.write('\n')
                 fh.write(msg.strip())
 
-    def get_last_commit_info(self, branch, log_depth=10):
+    def get_last_commit_info(self, branch, log_depth=10, verbose=False):
         lines = []
-        io.cmd("svn log {} -l {}".format(branch.svn_path, log_depth), logger=lines.append)
+        cmd = "svn log {} -l {}".format(branch.svn_path, log_depth)
+        if verbose:
+            cmd += " -v"
+        io.cmd(cmd, logger=lines.append)
         return self.find_usr_commit(lines)
 
     def find_usr_commit(self, lines):
@@ -87,10 +96,18 @@ class SvnClient:
                 break
         if m is None or m.group(2) != self.user:
             raise RuntimeError("could not find user {} in logs".format(self.user))
-        description = next(empty_line_it)
+        description = ""
+        for line in empty_line_it:
+            if re.match("-+$", line) is not None:
+                break
+            description += "\n" + line
         return {"user" : m.group(2),
                 "revision" : int(m.group(1)),
                 "description" : description}
+
+    def format_commit(self, commit):
+        template = "{user} | r{revision} \n{description}\n\n" + "-" * 50 + "\n"
+        return template.format(**commit)
 
     def run(self, source, dest, revisions):
         self.update(dest.disk_path)

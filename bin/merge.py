@@ -53,7 +53,7 @@ def run(args):
     conf = load_conf()
     setup_client(args, conf)
     io.setup_log(conf["log"], logging.DEBUG if args.verbose else logging.INFO)
-    myTree = tree.Tree(conf["repo"], CLIENT)
+    myTree = tree.Tree(conf["merge_path"], CLIENT)
     if args.branch is None:
         args.branch = os.path.basename(repo.get_current_target())
         logging.info("using current branch: {}".format(args.branch))

@@ -76,14 +76,9 @@ class Tree:
             self.client.run(branch, dest_branch, revisions)
 
     def collect_logs(self, src_name):
-        # broken
-        raise NotImplementedError()
         branch = self.branches[src_name]
-        messages = self.client.get_last_commit_info(branch)
-        for dest_branch in branch.merge_targets():
-            messages.extend(self.client.get_last_commit_info(dest_branch))
-        self.client.write("ticket_message", messages)
-        return messages
-
-    def get_last_commit_revision(self, branch_name):
-        return self.client.get_last_commit_revision(self.branches[branch_name])
+        commits = [self.client.get_last_commit_info(branch, verbose=True)]
+        for dest_branch in self.merge_path.merge_targets(src_name):
+            commits.append(self.client.get_last_commit_info(dest_branch, verbose=True))
+        self.client.write("ticket_message",
+                          (self.client.format_commit(commit) for commit in commits))
