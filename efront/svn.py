@@ -47,7 +47,7 @@ class SvnClient:
         logging.info("updating {}".format(repo))
         self.cmd("svn update {}".format(repo))
 
-    def try_generate_custom_solution(vs_version):
+    def try_generate_custom_solution(self, vs_version):
         config_path = os.path.join(RSK_DIR, "vs{}.srcrsk.All.xml".format(vs_version))
         if not os.path.exists(config_path):
             return
@@ -61,8 +61,8 @@ class SvnClient:
         io.run_script(path, "msbuild_RSK.bat")
         if os.path.exists(os.path.join(path, "msbuild_FrontCube.bat")):
             io.run_script(path, "msbuild_FrontCube.bat")
-        try_generate_custom_solution("2008")
-        try_generate_custom_solution("2012")
+        self.try_generate_custom_solution("2008")
+        self.try_generate_custom_solution("2012")
         logging.info("Generating vb model")
         frontAdminPath = os.path.join(DEV_DIR, "website", "bin")
         io.cmd("FrontAdmin.exe" + " /generatevbmodel /x",
